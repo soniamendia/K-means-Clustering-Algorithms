@@ -1,8 +1,9 @@
 from setuptools import setup
 from Cython.Build import cythonize
-import numpy as np
+import numpy
 
 setup(
-    ext_modules=cythonize("kmeans_cython.pyx"),
-    include_dirs=[np.get_include()]
+    ext_modules = cythonize("kmeans_cython.pyx"),
+    include_dirs=[numpy.get_include()]
 )
+

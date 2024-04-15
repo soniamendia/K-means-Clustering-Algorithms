@@ -1,15 +1,8 @@
 import numpy as np
 import numexpr as ne
-
-# Define parameters for experiments
-K = 3  # Number of clusters
-dimensionality = 2  # Dimensionality of data points (e.g., 2D)
-dataset_size = 1000  # Size of the dataset (number of data points)
-
-
-def euclidean_distance(point1, point2):
-    return np.sqrt(np.sum((point1 - point2) ** 2))
-
+import cProfile
+import pstats
+import io
 
 def euclidean_distance(point1, point2):
     return np.sqrt(np.sum((point1 - point2) ** 2))
@@ -40,9 +33,33 @@ def kmeans_numpy(data, k, max_iterations=100):
         centroids = new_centroids
     return clusters, centroids
 
-# Example usage
-data_points = np.array([(1, 2), (5, 8), (3, 6), (8, 1), (10, 5)])
-k_value = 2
-clusters, centroids = kmeans_numpy(data_points, k_value)
-print("Clusters:", clusters)
-print("Centroids:", centroids)
+def profile_kmeans_numpy(k_values, dimensionalities, dataset_sizes):
+    # Open log file
+    log_file = open('log.txt', 'w')
+
+    for k in k_values:
+        for dim in dimensionalities:
+            for size in dataset_sizes:
+                log_file.write(f"Profiling for K={k}, Dimensionality={dim}, Dataset Size={size}\n")
+                data = np.random.uniform(-10, 10, (size, dim))
+                profiler = cProfile.Profile()
+                profiler.enable()
+                kmeans_numpy(data, k)
+                profiler.disable()
+                s = io.StringIO()
+                sortby = 'cumulative'
+                ps = pstats.Stats(profiler, stream=s).sort_stats(sortby)
+                ps.print_stats()
+                log_file.write(s.getvalue())
+
+    # Close log file
+    log_file.close()
+
+k_values = [3, 4, 5]
+dimensionalities = [2, 3, 4]
+dataset_sizes = [100, 1000, 10000]
+
+profile_kmeans_numpy(k_values, dimensionalities, dataset_sizes)
+
+
+
